@@ -2,18 +2,18 @@ package postgres
 
 import (
 	"context"
-	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 )
 
-func New() *pgxpool.Pool {
-	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+func New(databaseURL string) *pgxpool.Pool {
+	dbpool, err := pgxpool.New(context.Background(), databaseURL)
 	if err != nil {
 		log.Fatal().Msg("Failed to connect to DB")
 	}
-	defer dbpool.Close()
+
+	log.Info().Msg("Sucessfully connect to postgres")
 
 	return dbpool
 }

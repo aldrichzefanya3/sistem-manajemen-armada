@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  fleet-service-postgres:
+    image: postgres:16
+    container_name: fleet-service-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fleet_db
+    ports:
+      - "54321:5432"
+
+  fleet-service-migration:
+    image: migrate/migrate:v4.17.0
+    command: ["-path", "/migrations", "-database", "postgres://postgres:postgres@fleet-service-postgres:5432/fleet_db?sslmode=disable", "up"]
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      - fleet-service-postgres
+
+  fleet-service-mqtt:
+    image: eclipse-mosquitto:latest
+    restart: always
+    container_name: fleet-service-mqtt
+    ports:
+      - "18834:1883" 
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/data:/mosquitto/data
+
+  fleet-service-app:
+    build:
+      context: .
+      dockerfile: ./deployment/Dockerfile
+    container_name: fleet-service-app
+    depends_on:
+      - fleet-service-postgres 
+      - fleet-service-migration 
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@fleet-service-postgres:5432/fleet_db?sslmode=disable
+      PORT: 8000
+    ports:
+      - "8000:8000"
+
+  fleet-service-subscriber:
+    build:
+      context: .
+      dockerfile: ./deployment/Dockerfile.subs
+    container_name: fleet-service-subscriber
+    depends_on:
+      - fleet-service-postgres
+      - fleet-service-mqtt
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@fleet-service-postgres:5432/fleet_db?sslmode=disable
+      SUBSCRIBER_PORT: 8001
+      SUBSCRIBER_CLIENT_ID: mqtt-client-sub
+      PUBSUB_BROKER: tcp://fleet-service-mqtt:1883
+      PUBSUB_TOPIC: fleet
+    ports:
+      - "8001:8001"
+
+  fleet-service-publisher:
+    build:
+      context: .
+      dockerfile: ./deployment/Dockerfile.pubs
+    container_name: fleet-service-publisher
+    depends_on:
+      - fleet-service-mqtt
+    environment:
+      PUBLISHER_CLIENT_ID: mqtt-client-pub
+      PUBSUB_BROKER: tcp://fleet-service-mqtt:1883
+      PUBSUB_TOPIC: fleet
+    ports:
+      - "8003:8003"
+ 
+      
+ 
