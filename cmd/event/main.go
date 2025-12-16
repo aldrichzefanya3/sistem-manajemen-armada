@@ -22,7 +22,11 @@ func main() {
 		log.Info().Msg(".env file loaded")
 	}
 
-	rabbitMQ := rabbitmq.New(os.Getenv("AMQP_SERVER_URL"))
+	exchange := os.Getenv("RABBIT_EXCHANGE")
+	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
+	queue := os.Getenv("RABBIT_QUEUE")
+
+	rabbitMQ := rabbitmq.New(amqpServerURL, exchange, queue)
 	defer rabbitMQ.Close()
 
 	centerLat := -6.2088
@@ -47,10 +51,11 @@ func main() {
 
 		body, _ := json.Marshal(eventGeofence)
 
-		err = rabbitMQ.Publish("fleet.events", "", false, false, amqp091.Publishing{
+		err = rabbitMQ.Publish(exchange, "", false, false, amqp091.Publishing{
 			ContentType: "application/json",
 			Body:        body,
 		})
+
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to publish event")
 		} else {

@@ -1,0 +1,21 @@
+FROM golang:1.24.4 AS builder
+
+WORKDIR /worker
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY ./cmd /worker/cmd
+COPY ./internal /worker/internal
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/worker/
+
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+COPY --from=builder /worker/main .
+
+CMD ["./main"]

@@ -6,7 +6,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func New(amqpServerURL string) *amqp.Channel {
+func New(amqpServerURL, exchangeName, queueName string) *amqp.Channel {
 	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
 	if err != nil {
 		panic(err)
@@ -18,7 +18,7 @@ func New(amqpServerURL string) *amqp.Channel {
 	}
 
 	err = channelRabbitMQ.ExchangeDeclare(
-		"fleet.events",
+		exchangeName,
 		"fanout",
 		true,
 		false,
@@ -31,7 +31,7 @@ func New(amqpServerURL string) *amqp.Channel {
 	}
 
 	queue, err := channelRabbitMQ.QueueDeclare(
-		"geofence_alerts",
+		queueName,
 		true,
 		false,
 		false,

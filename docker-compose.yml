@@ -36,6 +36,10 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      retries: 5
 
   fleet-service-app:
     build:
@@ -89,7 +93,23 @@ services:
     container_name: fleet-service-geofence
     environment:
       AMQP_SERVER_URL: amqp://guest:guest@fleet-service-rabbitmq:5672/
+      RABBIT_EXCHANGE: fleet.events
+      RABBIT_QUEUE: geofence_alerts
     depends_on:
-      - fleet-service-rabbitmq
+      fleet-service-rabbitmq:
+        condition: service_healthy
+
+  fleet-service-worker:
+    build:
+      context: .
+      dockerfile: ./deployment/Dockerfile.worker
+    container_name: fleet-service-worker
+    environment:
+      AMQP_SERVER_URL: amqp://guest:guest@fleet-service-rabbitmq:5672/
+      RABBIT_EXCHANGE: fleet.events
+      RABBIT_QUEUE: geofence_alerts
+    depends_on:
+      fleet-service-rabbitmq:
+        condition: service_healthy
       
  

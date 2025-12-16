@@ -62,7 +62,7 @@ func main() {
 	client := mqtt.NewClient(opts)
 
 	maxRetries := 5
-	for i := 0; i < maxRetries; i++ {
+	for i := range maxRetries {
 		token := client.Connect()
 		if token.Wait() && token.Error() != nil {
 			log.Error().Err(token.Error()).Msgf("MQTT connection attempt %d failed", i+1)
