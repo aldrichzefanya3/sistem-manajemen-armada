@@ -19,11 +19,11 @@
 
 ### ENV
 - There's env that need to be setup if you are not using docker
-  `DATABASE_URL=your-full-database-connection-string
-  PORT=
-  PUBLISHER_CLIENT_ID=example-pub-client-id
-  PUBSUB_BROKER=tcp://localhost:1883
-  PUBSUB_TOPIC=example-topic
-  SUBSCRIBER_PORT=
-  SUBSCRIBER_CLIENT_ID=example-sub-client-id
-  AMQP_SERVER_URL=amqp://guest:guest@localhost:5672/`
+   - DATABASE_URL=your-full-database-connection-string
+   - PORT=
+   - PUBLISHER_CLIENT_ID=example-pub-client-id
+   - PUBSUB_BROKER=tcp://localhost:1883
+   - PUBSUB_TOPIC=example-topic
+   - SUBSCRIBER_PORT=
+   - SUBSCRIBER_CLIENT_ID=example-sub-client-id
+   - AMQP_SERVER_URL=amqp://guest:guest@localhost:5672/
