@@ -102,29 +102,28 @@ func main() {
 			return
 		}
 
-		startDate, err := strconv.ParseInt(startStr, 10, 64)
+		startEpoch, err := strconv.ParseInt(c.Query("start"), 10, 64)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid start timestamp"})
-			return
+			log.Fatal().Err(err).Msg("invalid start timestamp")
 		}
 
-		endDate, err := strconv.ParseInt(endStr, 10, 64)
+		endEpoch, err := strconv.ParseInt(c.Query("end"), 10, 64)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid end timestamp"})
-			return
+			log.Fatal().Err(err).Msg("invalid end timestamp")
 		}
 
 		rows, err := dbPool.Query(
 			ctx,
 			`SELECT vehicle_id, latitude, longitude, timestamp
-					FROM vehicle_locations
-					WHERE vehicle_id = $1
-					AND timestamp >= to_timestamp($2)
-					AND timestamp <= to_timestamp($3)
-					ORDER BY timestamp DESC`,
+			FROM vehicle_locations
+			WHERE vehicle_id = $1
+			AND timestamp >= $2
+			AND timestamp <= $3
+			ORDER BY timestamp DESC`,
 			vehicleID,
-			startDate,
-			endDate)
+			startEpoch, 
+			endEpoch,   
+		)
 		if err != nil {
 			log.Error().Err(err).Msg("Error querying database")
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "error querying database"})
