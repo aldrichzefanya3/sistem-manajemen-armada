@@ -2,28 +2,36 @@ package rabbitmq
 
 import (
 	"log"
-	"os"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func New() *amqp.Channel {
-	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
-
+func New(amqpServerURL string) *amqp.Channel {
 	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
 	if err != nil {
 		panic(err)
 	}
-	defer connectRabbitMQ.Close()
 
 	channelRabbitMQ, err := connectRabbitMQ.Channel()
 	if err != nil {
 		panic(err)
 	}
-	defer channelRabbitMQ.Close()
 
-	_, err = channelRabbitMQ.QueueDeclare(
-		"",
+	err = channelRabbitMQ.ExchangeDeclare(
+		"fleet.events",
+		"fanout",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	queue, err := channelRabbitMQ.QueueDeclare(
+		"geofence_alerts",
 		true,
 		false,
 		false,
@@ -32,6 +40,17 @@ func New() *amqp.Channel {
 	)
 	if err != nil {
 		log.Fatalf("Failed to declare a queue: %v", err)
+	}
+
+	err = channelRabbitMQ.QueueBind(
+		queue.Name,
+		"",
+		"fleet.events",
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return channelRabbitMQ

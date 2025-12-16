@@ -30,6 +30,13 @@ services:
       - ./mosquitto/log:/mosquitto/log
       - ./mosquitto/data:/mosquitto/data
 
+  fleet-service-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fleet-service-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   fleet-service-app:
     build:
       context: .
@@ -74,6 +81,15 @@ services:
       PUBSUB_TOPIC: fleet
     ports:
       - "8003:8003"
- 
+  
+  fleet-service-geofence:
+    build:
+      context: .
+      dockerfile: ./deployment/Dockerfile.event
+    container_name: fleet-service-geofence
+    environment:
+      AMQP_SERVER_URL: amqp://guest:guest@fleet-service-rabbitmq:5672/
+    depends_on:
+      - fleet-service-rabbitmq
       
  
