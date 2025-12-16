@@ -27,3 +27,5 @@
    - SUBSCRIBER_PORT=
    - SUBSCRIBER_CLIENT_ID=example-sub-client-id
    - AMQP_SERVER_URL=amqp://guest:guest@localhost:5672/
+   - RABBIT_EXCHANGE=
+   - RABBIT_QUEUE=
